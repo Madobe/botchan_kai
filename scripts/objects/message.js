@@ -25,17 +25,43 @@
     // Strip off any leading punctuation that might happen to be spaced (eg. "yuki , test" will
     // require this)
     for(var i = 0; i < plain_text.length; i++) {
-      plain_text[i] = plain_text[i].replace(/\W/gi, '');
-      if(plain_text[i] == '') plain_text.splice(i, 1);
+      plain_text[i] = plain_text[i].toLowerCase();
+      if(plain_text[i].replace(/\W/gi, '') == '') plain_text.splice(i, 1);
     }
 
     this.text = plain_text.join(' ');
   }
 
+  Message.prototype.say = function(text) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        id:     'extension',
+        target: 'injected',
+        action: 'say',
+        text:   text,
+      });
+    });
+  };
+
+  Message.prototype.kick = function(name) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        id:     'extension',
+        target: 'injected',
+        action: 'kick',
+        text:   name,
+      });
+    });
+  };
+
   Message.prototype.process = function() {
     this.strip_calls();
     var action = Commands.search(this.text);
-    $.proxy(action, Commands, this)();
+    if(action) {
+      $.proxy(action, this)();
+    } else {
+      this.say("Random.");
+    }
   };
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
