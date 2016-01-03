@@ -24,7 +24,6 @@
   // Listen for messages from the background scripts
   // Messages heading out from here have two options, "say" or "kick"
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log(request);
     if(request.id == 'extension' && request.target == 'injected') {
       window.postMessage(request, '*');
     }
