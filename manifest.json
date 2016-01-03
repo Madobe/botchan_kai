@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+
+  "name": "Bot-chan Kai Chrome Extension",
+  "description": "Our resident Skynet, bot-chan, AKA Yuki!",
+  "version": "1.0",
+  "devtools_page": "pages/devtools/index.html",
+  "browser_action": {
+    "default_icon": "assets/images/botchan.png",
+    "default_popup": "pages/popup/index.html"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "unlimitedStorage"
+  ],
+  "background": {
+    "scripts": [
+      "assets/js/jquery-2.1.3.min.js",
+      "scripts/objects/message.js"
+    ]
+  },
+  "web_accessible_resources": [
+    "scripts/injected/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://*.wikia.com/wiki/Special:Chat"],
+      "js": [
+        "assets/js/jquery-2.1.3.min.js",
+        "scripts/init.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ]
+}
