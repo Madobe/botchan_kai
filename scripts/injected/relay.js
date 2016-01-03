@@ -7,7 +7,7 @@
     auth: 0, // 0 = normal, 1 = mod, 2 = admin
 
     // This stuff is so we don't end up processing other script's messages
-    id: "yuki",
+    id: "injected",
     target: "extension",
 
     pack: function(chat) {
@@ -29,4 +29,17 @@
   };
 
   mainRoom.model.chats.bind('afteradd', $.proxy(Relay.pack, Relay));
+
+  window.addEventListener('message', function(e) {
+    var data = e.data;
+    if(data.id == 'extension' && data.target == 'injected') {
+      if(data.action == 'say') {
+        var chatEntry = new models.ChatEntry({roomId: mainRoom.roomId, name: wgUserName, text: data.text});
+        mainRoom.socket.send(chatEntry.xport());
+      } else if(data.action == 'kick') {
+        var kickCommand = new models.KickCommand({userToKick: data.text});
+        mainRoom.socket.send(kickCommand.xport());
+      }
+    }
+  });
 })();

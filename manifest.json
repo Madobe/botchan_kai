@@ -17,6 +17,7 @@
   "background": {
     "scripts": [
       "assets/js/jquery-2.1.3.min.js",
+      "scripts/objects/commands.js",
       "scripts/objects/message.js"
     ]
   },

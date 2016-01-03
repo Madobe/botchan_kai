@@ -15,9 +15,18 @@
   // Listen for messages from the injected scripts
   window.addEventListener('message', function(e) {
     var data = e.data;
-    if(typeof(data) == 'object' && data.id == 'yuki' && data.target == 'extension') {
+    if(typeof(data) == 'object' && data.id == 'injected' && data.target == 'extension') {
       data.target = 'message';
       chrome.runtime.sendMessage(data);
+    }
+  });
+
+  // Listen for messages from the background scripts
+  // Messages heading out from here have two options, "say" or "kick"
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log(request);
+    if(request.id == 'extension' && request.target == 'injected') {
+      window.postMessage(request, '*');
     }
   });
 })();
