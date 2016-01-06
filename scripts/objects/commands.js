@@ -1,18 +1,57 @@
+/*
+ * Commands database
+ *
+ * Keeps all the possible commands for bot-chan. Basically just a big database.
+ */
 (function() {
+  "use strict";
+
   window.Commands = {
+    /*
+     * Searches for a command that matches the input
+     */
     search: function(text) {
       for(var a = 0; a < this.database.length; a++) {
         var regexes = this.database[a].regex;
         for(var b = 0; b < regexes.length; b++) {
           var regex = new RegExp(regexes[b], 'gi');
           if(regex.test(text)) {
-            return this.database[a].action;
+            return this.database[a];
           }
         }
       }
       return false;
     },
 
+    /*
+     * Edits a page on the wikia.
+     */
+    send: function(data, method, callback) {
+      data['format'] = 'json';
+      $.ajax({
+        data: data,
+        dataType: 'json',
+        url: wgScriptPath + '/api.php',
+        type: method,
+        success: function(response) {
+          if(response.error) showError('API error: ' + response.error.info);
+          else callback(response);
+        },
+        error: function(xhr, error) {
+          console.log('AJAX error.');
+          console.log(error);
+        }
+      });
+    },
+
+    /*
+     * Each command has 4 parts:
+       * Regex: Regular expression matched against the input text. It's given as an array so
+         multiple regexes can work for the same action.
+       * Description: The part that automates the help page.
+       * Weight: How much this action costs. Default maximum is 3 per person.
+       * Action: The response if the regex matches. Always a function.
+     */
     database: [
       {
         regex: ['^$'],
@@ -112,7 +151,7 @@
       },
       {
         regex: ['^good\\s?night'],
-        description: '',
+        description: 'Text: Personality-based',
         weight: 3,
         action: function() {
           this.say(Personality.line('good night'));
@@ -328,7 +367,7 @@
       },
       {
         regex: ['^shireee'],
-        description: 'https://www.youtube.com/watch?v=ocDB5zxSrgQ',
+        description: 'Text: https://www.youtube.com/watch?v=ocDB5zxSrgQ',
         weight: 1,
         action: function() {
           this.say("https://www.youtube.com/watch?v=ocDB5zxSrgQ");
@@ -464,7 +503,7 @@
       },
       {
         regex: ['^news.?$'],
-        description: '[[Recent Updates]]',
+        description: 'Text: [[Recent Updates]]',
         weight: 0,
         action: function() {
           this.say("[[Recent Updates]]");
@@ -844,6 +883,574 @@
         weight: 0,
         action: function() {
           this.say("[6-3] ELoS: 53 (only report found)");
+        },
+      },
+      {
+        regex: ['^(who is|who\'?s) your (wife|waifu)'],
+        description: 'Outputs a random kanmusu name.',
+        weight: 3,
+        action: function() {
+          var shiplist = ["Mutsuki", "Kisaragi", "Yayoi", "Uzuki", "Satsuki", "Fumizuki", "Nagatsuki", "Kikuzuki", "Mikazuki", "Mochizuki",
+          "Fubuki", "Shirayuki", "Hatsuyuki", "Miyuki", "Murakumo", "Isonami", "Ayanami", "Shikinami", "Oboro", "Akebono",
+          "Sazanami", "Ushio", "Akatsuki", "Hibiki/Верный", "Ikazuchi", "Inazuma", "Hatsuharu", "Nenohi", "Wakaba", "Hatsushimo",
+          "Shiratsuyu", "Shigure", "Murasame", "Yuudachi", "Harusame", "Samidare", "Suzukaze", "Asashio", "Ooshio", "Michishio",
+          "Arashio", "Yamagumo", "Asagumo", "Arare", "Kasumi", "Kagerou", "Shiranui", "Kuroshio", "Hatsukaze", "Yukikaze",
+          "Amatsukaze", "Tokitsukaze", "Urakaze", "Isokaze", "Hamakaze", "Tanikaze", "Nowaki", "Maikaze", "Akigumo", "Yuugumo",
+          "Makigumo", "Naganami", "Takanami", "Asashimo", "Hayashimo", "Kiyoshimo", "Akizuki", "Shimakaze", "Z1", "Z3",
+          "Tenryuu", "Tatsuta", "Kuma", "Tama", "Kitakami", "Ooi", "Kiso", "Nagara", "Isuzu", "Yura",
+          "Natori", "Kinu", "Abukuma", "Yuubari", "Sendai", "Jintsuu", "Naka", "Agano", "Noshiro", "Yahagi",
+          "Sakawa", "Ooyodo", "Furutaka", "Kako", "Aoba", "Kinugasa", "Myoukou", "Nachi", "Ashigara", "Haguro",
+          "Takao", "Atago", "Maya", "Choukai", "Prinz Eugen", "Mogami", "Mikuma", "Suzuya", "Tone", "Kongou",
+          "Hiei", "Haruna", "Kirishima", "Nagato", "Mutsu", "Yamato", "Musashi", "Bismarck", "Littorio/Italia", "Roma",
+          "Fusou", "Yamashiro", "Ise", "Houshou", "Ryuujou", "Ryuuhou", "Hiyou", "Jun'you", "Shouhou", "Zuihou",
+          "Akagi", "Kaga", "Souryuu", "Hiryuu", "Shoukaku", "Zuikaku", "Taihou", "Unryuu", "Amagi", "Katsuragi",
+          "I-168", "I-8", "I-19", "I-58", "I-401", "Maruyu", "U-511/Ro-500", "Chitose", "Chiyoda", "Akitsushima",
+          "Taigei", "Akashi", "Katori", "Akitsu Maru", "Kawakaze", "Umikaze", "Littorio", "Kazagumo", "Teruzuki", "Mizuho",
+          "Kashima", "Graf Zeppelin", "Hagikaze", "Arashi"];
+
+          var rand = Math.floor(Math.random() * shiplist.length);
+          this.say(shiplist[rand] + ".");
+        },
+      },
+      {
+        regex: ['(who is|who\'?s) my (wife|waifu)'],
+        description: 'Outputs a random Abyssal name.',
+        weight: 3,
+        action: function() {
+          var shiplist = ['Tsu-Class Light Cruiser', 'Ri-Class Heavy Cruiser', 'Ne-Class Heavy Cruiser', 'Wo-chan', 'Ru-Class Battleship',
+          'Ta-Class Battleship', 'Re-Class Battleship', 'Armored Carrier Demon', 'Armored Carrier Princess', 'Anchorage Demon',
+          'Anchorage Princess', 'Southern Demon', 'Southern War Demon', 'Southern War Princess', 'Airfield Princess',
+          'Battleship Princess', 'Seaport-chan', 'Isolated Island Demon', 'Hoppou', 'Aircraft Carrier Demon',
+          'Midway Princess', 'Aircraft Carrier Princess', 'Destroyer Princess', 'Aircraft Carrier Water Demon', 'Light Cruiser Demon',
+          'Battleship Water Demon', 'Harbour Water Demon', 'Anchorage Water Demon', 'Seaplane Tender Princess', 'Air Defense Princess',
+          'Light Cruiser Princess', 'Submarine Princess', 'Destroyer Water Demon'];
+
+          if(name == 'TScript' || name == 'Epicureanpancake') shiplist = ['I-Class Destroyer'];
+          if(name == 'Ebisuisei') shiplist = ['Anchorage Water Demon'];
+          if(name == 'AbsoluteLuck') shiplist = ['Air Defense Princess'];
+          var rand = Math.floor(Math.random() * shiplist.length);
+          this.say(shiplist[rand] + ".");
+        },
+      },
+      {
+        regex: ['^pick', '^choose'],
+        description: 'Picks between options. Options must be separated by " or ".\nExample: Yuki, pick yes or no.',
+        weight: 3,
+        action: function() {
+          this.text = this.text.split(' or ');
+          var rand = Math.floor(Math.random() * this.text.length);
+          this.text = this.text[rand];
+          this.say(this.text_only + '.');
+        },
+      },
+      {
+        regex: ['^latest links', '^recent link'],
+        description: 'Returns the 5 latest links posted in chat.',
+        weight: 3,
+        action: function() {
+          this.say('Latest links (WARNING: May contain NSFW links):\n' + Data.latest_links.join('\n'));
+        },
+      },
+      {
+        regex: ['^kick me', 'do you want to see my ship\\s?list', 'i\'?m kuso', '^kill me', '^sink me', '^chat\\s?nuke'],
+        description: 'Kicks the invoker.',
+        weight: 1,
+        action: function() {
+          this.kick(this.user);
+        },
+      },
+      {
+        regex: ['^kick', '^sink', '^terminate', '^exterminate', '^slap', '^punch', '^nuke', '^rekt', '^grate', '^torpedo', '^cut-in'],
+        description: 'Sinks the user given.\nExample: Yuki, kick KowaretaGuze.',
+        weight: 0,
+        action: function() {
+          if(this.auth) {
+            var short = {'JWT': 'JustWastingTime', 'TS': 'TScript'};
+            if(short[this.text_only]) this.text = short[this.text_only];
+            this.say(Personality.line('kick'));
+            this.kick(this.text);
+          }
+        },
+      },
+      {
+        regex: ['^reset games'],
+        description: 'Resets the game cooldowns so they may be played immediately following this command\'s invocation.',
+        weight: 0,
+        action: function() {
+          if(this.auth == 3) {
+            Data.reset_games();
+            this.say('Game cooldowns reset!');
+          }
+        },
+      },
+      {
+        regex: ['^reset all', '^reset cooldowns'],
+        description: 'Resets all weights on all individuals (even those not present).',
+        weight: 0,
+        action: function() {
+          if(this.auth == 3) {
+            Data.reset_cooldowns();
+            this.say('All cooldowns reset!');
+          }
+        },
+      },
+      {
+        regex: ['^reset'],
+        description: 'Resets all weights on the specified individual.\nExample: Yuki, reset CDRW.',
+        weight: 0,
+        action: function() {
+          if(this.auth == 3) {
+            Data.reset_cooldown(this.text);
+            this.say('Cooldowns reset for ' + this.text + '!');
+          }
+        },
+      },
+      {
+        regex: ['^silence left'],
+        description: 'Checks how much longer the bot is silenced for.',
+        weight: 0,
+        action: function() {
+          if(this.auth) {
+            if(!Data.silence) Data.set_silence(0);
+            this.say(parseInt((Data.silence - new Date().getTime()) / 60000) + ' minutes remaining.');
+          }
+        },
+      },
+      {
+        regex: ['^silence'],
+        description: 'Silences the bot for X minutes.\nExample: Yuki, silence 5.',
+        weight: 0,
+        action: function() {
+          if(this.auth) {
+            Data.set_silence = new Date().getTime() + (parseInt(this.text_only) * 60000);
+          }
+        },
+      },
+      {
+        regex: ['^add explosion'],
+        description: 'Adds the given name to the explosion list.\nExample: Yuki, add explosion Akios.',
+        weight: 0,
+        action: function() {
+          if(this.auth) {
+            this.text = this.text.substr(10);
+            Data.add_explosion(this.text_only);
+            this.say(this.text_only + ' has been added to the list of explosion targets!');
+          }
+        },
+      },
+      {
+        regex: ['^remove explosion'],
+        description: 'Removes the given name from the explosion list.\nExample: Yuki, remove explosion Akios.',
+        weight: 0,
+        action: function() {
+          if(authority) {
+            this.text = this.text.substr(10);
+            var index = Data.remove_explosion(this.text_only);
+          }
+        },
+      },
+      {
+        regex: ['^list explosion'],
+        description: 'Lists all individuals in the explosion list.',
+        weight: 0,
+        action: function() {
+          if(this.auth) {
+            this.say('Current possible targets: ' + Data.explosions.join(', '));
+          }
+        },
+      },
+      {
+        regex: ['^clear explosion'],
+        description: 'Resets the explosion list to just Akios.',
+        weight: 0,
+        action: function() {
+          if(this.auth) {
+            Data.reset_explosion();
+            this.say('Explosion list reset!');
+          }
+        },
+      },
+      {
+        regex: ['^i (wanna|want to) play'],
+        description: 'The speaker joins the list of people playing russian roulette or reverse roulette.',
+        weight: 2,
+        action: function() {
+          Data.add_player(this.user);
+        },
+      },
+      {
+        regex: ['^i quit'],
+        description: 'The speaker leaves the list of people playing russian roulette or reverse roulette.',
+        weight: 0,
+        action: function() {
+          Data.quit_player(this.user);
+        },
+      },
+      {
+        regex: ['^russian roulette'],
+        description: 'Invoke russian roulette. Removes one person from the list at random and kicks them from chat.',
+        weight: 0,
+        action: function() {
+          if(Data.players.length < 2) {
+            this.say('We need at least two people.');
+          } else {
+            var rand = Math.floor(Math.random() * Data.players.length);
+            var loser = Data.players[rand];
+            this.kick(loser);
+            if(loser != this.user) Data.add_cooldown(loser, 2, 15 * 60000);
+            Data.add_cooldown(this.user, 2, 15 * 60000);
+            this.players.splice(rand, 1);
+          }
+        },
+      },
+      {
+        regex: ['^reverse roulette'],
+        description: 'Invoke reverse roulette. Removes players until there\'s only one left.',
+        weight: 0,
+        action: function() {
+          if(!Data.game_cds.reverse_roulette) Data.set_game_cd('reverse_roulette', 0);
+          if(Data.game_cds.reverse_roulette > new Date().getTime()) return;
+          if(Data.players.indexOf(this.user) == -1) return;
+          
+          if(Data.players.length < 2) {
+            this.say('We need at least two people.');
+          } else {
+            while(Data.players.length > 1) {
+              var rand = Math.floor(Math.random() * Data.players.length);
+              this.kick(Data.players[rand]);
+              Data.add_epeen(this.players[rand], -5);
+              Data.remove_player(this.players[rand]);
+            }
+
+            var winner = Data.players.pop();
+            Data.reset_cooldown(winner);
+            Data.add_epeen(winner, 10);
+            this.say(winner + ' is the winner! Their cooldowns have been reset and they have been awarded 10 e-peen points! All losers lose 5 e-peen points!');
+            Data.set_game_cd('reverse_roulette', new Date().getTime() + 1000 * 60 * 30);
+          }
+        },
+      },
+      {
+        regex: ['^rps'],
+        description: 'Invokes rock-paper-scissors. Playing is done by saying rock, paper or scissors to bot-chan. The timeout is one minute.',
+        weight: 0,
+        action: function() {
+          if(!Data.game_cds.rps) Data.set_game_cd('rps', 0);
+          if(Data.game_cds.rps > new Date().getTime()) return;
+          if(Data.flags['rps']) return;
+          
+          this.say('Rock, Paper, Scissors is starting! Say "rock", "paper", or "scissors" to me to play!');
+          Data.set_flag('rps', true);
+          this.rps_timer = setTimeout($.proxy(function() {
+            clearTimeout(this.rps_timer);
+            Data.set_flag('rps', false);
+
+            var hands = ['rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors', 'rock', 'paper', 'scissors'];
+            var chosen = Math.floor(Math.random() * hands.length);
+            var winner = hands[(chosen + 1) % 30];
+            var loser = hands[(chosen + 2) % 30];
+            chosen = hands[chosen];
+
+            if(Data.rps_players[winner] && Data.rps_players[winner].length == 0) {
+              this.say("I chose " + chosen + "! Nobody won!");
+            } else {
+              this.say("I chose " + chosen + "! Winners: " + Data.rps_players[winner].join(', ') + ". They gain 2 e-peen!");
+              for(var i = 0; i < Data.rps_players[winner].length; i++) {
+                Data.add_epeen(Data.rps_players[winner][i], 2);
+              }
+            }
+            if(Data.rps_players[loser] && Data.rps_players[loser].length == 0) {
+              this.say("No losers this round!");
+            } else {
+              this.say("The losers are: " + Data.rps_players[loser].join(', ') + ". They lose 1 e-peen!");
+              for(var i = 0; i < Data.rps_players[loser].length; i++) {
+                Data.add_epeen(Data.rps_players[loser][i], -1);
+              }
+            }
+            Data.reset_rps_players();
+            Data.set_game_cd('rps', new Date().getTime() + 1000 * 60 * 30);
+          }, this), 60000);
+        },
+      },
+      {
+        regex: ['^rock'],
+        description: 'Rock-paper-scissors command.',
+        weight: 0,
+        action: function() {
+          Data.add_rps_player('rock', this.user);
+        },
+      },
+      {
+        regex: ['^paper'],
+        description: 'Rock-paper-scissors command.',
+        weight: 0,
+        action: function() {
+          Data.add_rps_player('paper', this.user);
+        },
+      },
+      {
+        regex: ['^scissors'],
+        description: 'Rock-paper-scissors command.',
+        weight: 0,
+        action: function() {
+          Data.add_rps_player('scissors', this.user);
+        },
+      },
+      {
+        regex: ['^my e-?peen'],
+        description: 'Returns the speaker\'s current e-peen length.',
+        weight: 1,
+        action: function() {
+          var epeen = Data.epeen[this.user] || 0;
+          this.say("Your e-peen is " + epeen + " falukorv long!");
+        },
+      },
+      {
+        regex: ['^e-?peen leaders?'],
+        description: 'Returns the current leaderboards for e-peen length.',
+        weight: 1,
+        action: function() {
+          var string = "E-peen leaders: ";
+          var sorted = Object.keys(Data.epeen).sort(function(a, b) { return Data.epeen[a] - Data.epeen[b]; })
+          sorted.reverse();
+          for(var i = 0; i < 5; i++) {
+            if(sorted[i] == undefined) break;
+            string += "[" + (i + 1) + "] " + sorted[i] + " (" + Data.epeen[sorted[i]] + "), ";
+          }
+          string = string.slice(0, -2);
+          this.say(string);
+        },
+      },
+      {
+        regex: ['^lady leaders'],
+        description: 'Returns the current leaderboards for ladyness.',
+        weight: 1,
+        action: function() {
+          var string = "Lady leaders: ";
+          var sorted = Object.keys(Data.epeen).sort(function(a, b) { return Data.epeen[b] - Data.epeen[a]; })
+          sorted.reverse();
+          for(var i = 0; i < 5; i++) {
+            if(sorted[i] == undefined) break;
+            string += "[" + (i + 1) + "] " + sorted[i] + " (" + Data.epeen[sorted[i]] + "), ";
+          }
+          string = string.slice(0, -2);
+          this.say(string);
+        },
+      },
+      {
+        regex: ['(who\'?s|who is) playing'],
+        description: 'Returns the current list of players playing russian roulette or reverse roulette.',
+        weight: 1,
+        action: function() {
+          if(Data.players.length > 0) {
+            this.say('Players: ' + Data.players.join(', '));
+          } else {
+            this.say('Nobody is playing at the moment.');
+          }
+        },
+      },
+      {
+        regex: ['^who am i'],
+        description: 'Returns the speaker\'s name.',
+        weight: 3,
+        action: function() {
+          this.say(this.user + '.');
+        },
+      },
+      {
+        regex: ['^who'],
+        description: 'Returns a random user from within the chat list.\nExample: Yuki, who faps too much?',
+        weight: 3,
+        action: function() {
+          var rand = Math.floor(Math.random() * this.user_list.length);
+          this.say(this.user_list[rand] + '.');
+        },
+      },
+      {
+        regex: ['^register'],
+        description: 'Creates an infobit.\nExample: Yuki, register Koai = Ass.',
+        weight: 0,
+        action: function() {
+          var test = this.text;
+          test = test.split(' = ');
+          if(test.length == 1) {
+            this.say("Invalid format.");
+            return;
+          } else if(test[1].length > 75 && this.auth < 2) {
+            this.say("Input string cannot be longer than 75 characters. Last input was " + test[1].length + " characters.");
+            return;
+          }
+
+          Data.add_infobit(test[0], test[1]);
+          this.say('"' + test[0] + '" has been registered with value "' + test[1] + '".');
+
+          // Upload the values to a page on the wikia
+          var self = this;
+          var values = '<pre>\n';
+          var keys = Object.keys(Data.infobits);
+          for(var i = 0; i < keys.length; i++) {
+            values += keys[i] + '\n';
+            values += '=' + Data.infobits[keys[i]] + '\n';
+          }
+          values += '</pre>';
+
+          var data = {
+            'action'      : 'query',
+            'prop'        : 'info|revisions',
+            'intoken'     : 'edit',
+            'titles'      : 'Project:Bot/Registered_Values',
+            'rvprop'      : 'content',
+            'rvlimit'     : '1',
+            'indexpageids': 'true',
+          };
+
+          this.send(data, 'GET', function(response) {
+            var page = response.query.pages[response.query.pageids[0]];
+            var content = typeof(page['revisions']) != 'undefined' ? page.revisions[0]['*'] : '';
+
+            var data = {
+              'minor'        : 'no',
+              'bot'          : 'yes',
+              'summary'      : 'Updating registered values.',
+              'action'       : 'edit',
+              'title'        : 'Project:Bot/Registered_Values',
+              'startimestamp': page.starttimestamp,
+              'token'        : page.edittoken,
+              'text'         : values,
+            };
+
+            self.send(data, 'POST', function(response) {
+              console.log("Registered values updated.");
+            });
+          });
+        },
+      },
+      {
+        regex: ['^recall'],
+        description: 'Returns the registered value, if it exists.\nExample: Yuki, recall Koai.',
+        weight: 0,
+        action: function() {
+          if(Data.infobits[this.text_only] != undefined) {
+            this.say(this.text_only + ': ' + Data.infobits[this.text_only]);
+          }
+        },
+      },
+      {
+        regex: ['^fortune'],
+        description: 'Returns a random fortune.',
+        weight: 3,
+        action: function() {
+          var fortunes = [
+            "Compass-chan will take you for a ride ride ride~",
+            "A lot of (salt) is in your future.",
+            "You will have BEAVER LEVELS of luck.",
+            "That Bw4 quest of yours will take 50 more sorties.",
+            "/me attaches a falukorv magnet onto your back.",
+            "Beware of Ru, she's related to Re.",
+            "Warning: (CATDIVE) is imminent.",
+            "You are Hoss' most likely next (HAMMER) victim.",
+            "You are now registered for Rise's explosion list. (ARA) Have a good day!",
+            "You will get a (TAIHA) first node, next sortie :v",
+            "You will have two level 1s and four 99s in your pvp list next reset.",
+            "RNG will almost be nice to you, you will redirect away from the boss node.",
+            "YOU ARE NOW ROMA-CURSED with whatever ship you -truly- want.",
+            "(falukorv)",
+            "Oscar will let you through.",
+            "(YASEN) BEST SENDAI!",
+            "Poi?",
+            "FUSOU will visit your next 3 LSCs ([[User:Kazami Yuuka|Click here]] to negate this)!",
+            "You might one-shot your next LSC target.",
+            "You will KUSO next event. LSC 7/7/7/7 100 to avoid this.",
+            "A Nagamon will come for your best DDs.",
+            "You will get Akbar'd unless you give Nanamin your soul.",
+            "Swear at AbsoluteLuck to have some of his luck.",
+            "Want to be RNG besties? Go exceed Nanamin's fleet.",
+            "You will grow up to be an elephant (LADY)",
+            "Many (bucket)s will be used.",
+            "You will last dance for 8 and 1/2 days. More or less.",
+            "Echo already married your shipfu. Unless she's Umikaze.",
+            "Your waifu will have an event-limited CG in the future.",
+            "Stream your runs. Salt is best shared to everyone.",
+            "Bot-chan best grill.",
+            "You will have great fortune, if you can make a new fortune up.",
+            "(NANODESU) (NANODESU) (NANODESU)",
+            "Fortune? I threw that away for you. (IRUJANAI) You have me don't you?",
+            "No. (AMAGI)",
+            "*Your fortune slip turns to ashes as you hold it.*  (FUSOU)",
+            "(LOADING)",
+            "OM NOM NOM NOM! Akagi just ate 30k of your bauxite. https://danbooru.donmai.us/posts/1568866",
+            "(screw)s will be wasted at your next attempt.",
+            "(BAIT) MPs are coming!!!",
+            "There is no KanColle Anime.",
+            "Hiei's curry is waiting for you at your office.",
+            "Haruna is NOT Daijoubu.",
+            "Kirishima needs a new mic to check. She keeps DROPPING them.",
+            "Tea time for Kongou is srs bsns. (DEESU)",
+            "2-4-11 is a form of love too!",
+            "You have just inherited Nana's Summer E-7 salt.",
+            "Today, everyone will compliment you. Specifically, your ass.",
+            "You will be as lucky as AL if you can dance the dance (y)",
+            "Yuki will pick on you for the rest of today.",
+            "Your waifu's next remodel will require a blueprint, a protopault, an experimental plane, and 100 souls of the damned.",
+          ];
+          var rand = Math.floor(Math.random() * fortunes.length);
+          this.say(fortunes[rand]);
+        },
+      },
+      {
+        regex: ['^set personality', '^load personality'],
+        description: 'Changes the current personality',
+        weight: 0,
+        action: function() {
+          if(this.auth == 3) {
+            this.shift();
+            this.say("Personality set to \"" + this.text_only + "\"!");
+            Personality.change_to(this.text_only);
+          }
+        },
+      },
+      {
+        regex: ['^set mode'],
+        description: 'Changes the current mode. Modes determine which commands are available.',
+        weight: 0,
+        action: function() {
+          if(this.auth == 3) {
+            this.shift();
+            Data.set_mode(this.text_only);
+          }
+        },
+      },
+      {
+        regex: ['^remaining time'],
+        description: 'Returns the time remaining to the set time. Must be manually set.',
+        weight: 0,
+        action: function() {
+          var time_left = (Data.event_end - new Date().getTime()) / 1000;
+
+          var days = Math.floor(time_left / (60 * 60 * 24));
+          time_left %= 60 * 60 * 24;
+
+          var hours = Math.floor(time_left / 3600);
+          time_left %= 3600;
+          if(hours < 10) hours = "0" + hours;
+
+          var minutes = Math.floor(time_left / 60);
+          time_left %= 60;
+          if(minutes < 10) minutes = "0" + minutes;
+
+          if(time_left < 10) time_left = "0" + Math.floor(time_left);
+          else time_left = Math.floor(time_left);
+
+          this.say(days + " days and " + hours + ":" + minutes + ":" + time_left + " remaining.");
+        },
+      },
+      {
+        regex: ['^set event'],
+        description: 'Sets the new time for the countdown.',
+        weight: 0,
+        action: function() {
+          this.shift();
+          Data.set_event_end(this.text_only);
         },
       },
     ],

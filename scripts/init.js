@@ -1,3 +1,9 @@
+/*
+ * Content script
+ * 
+ * This script puts the injected scripts on the page and acts as a relay between the background and
+ * injected scripts.
+ */
 (function() {
   "use strict";
 
@@ -15,8 +21,7 @@
   // Listen for messages from the injected scripts
   window.addEventListener('message', function(e) {
     var data = e.data;
-    if(typeof(data) == 'object' && data.id == 'injected' && data.target == 'extension') {
-      data.target = 'message';
+    if(typeof(data) == 'object' && data.id == 'injected') {
       chrome.runtime.sendMessage(data);
     }
   });

@@ -1,3 +1,8 @@
+/*
+ * Injected script relay point
+ *
+ * This sends chat data up to the extension and performs the says and kicks when told to.
+ */
 (function() {
   "use strict";
 
@@ -8,7 +13,7 @@
 
     // This stuff is so we don't end up processing other script's messages
     id: "injected",
-    target: "extension",
+    target: "message",
 
     pack: function(chat) {
       this.user = chat.attributes.name;
@@ -19,6 +24,9 @@
       else if(user.attributes.isCanGiveChatMod) this.auth = 2;
       else if(user.attributes.isModerator) this.auth = 1;
       else this.auth = 0;
+
+      // We can't actually access this list later, so we'll send the list up
+      this.user_list = mainRoom.model.users.models.map(function(x) { return x.attributes.name; });
 
       this.send();
     },

@@ -17,6 +17,10 @@
   "background": {
     "scripts": [
       "assets/js/jquery-2.1.3.min.js",
+      "scripts/objects/timer.js",
+      "scripts/objects/data.js",
+      "scripts/objects/personality.js",
+      "scripts/managers/timer_manager.js",
       "scripts/objects/commands.js",
       "scripts/objects/message.js"
     ]
